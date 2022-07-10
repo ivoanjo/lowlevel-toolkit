@@ -1,0 +1,25 @@
+name: test
+
+on: [push, pull_request]
+
+env:
+  ENABLE_WERROR: true
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: ['3.4', head, debug]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: bundle exec rake
+      run: |
+        ruby -v
+        bundle exec rake

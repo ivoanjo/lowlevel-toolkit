@@ -1,0 +1,15 @@
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/experiments/
+gems.locked
+*.so
+*.bundle
+example*json
+.DS_Store
+.rspec_status
