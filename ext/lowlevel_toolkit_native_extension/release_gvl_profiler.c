@@ -32,8 +32,7 @@ static void on_thread_event(rb_event_flag_t event_id, const rb_internal_thread_e
     for (int i = 0; i < frame_count; i++) {
       rb_ary_push(frames, rb_profile_frame_path(locations[i]));
       VALUE name = rb_profile_frame_base_label(locations[i]);
-      if (name == Qnil) name = rb_profile_frame_method_name(locations[i]);
-      rb_ary_push(frames, name);
+      rb_ary_push(frames, name != Qnil ? name : rb_profile_frame_method_name(locations[i]));
       rb_ary_push(frames, INT2NUM(lines[i]));
     }
 
@@ -49,7 +48,57 @@ static void on_thread_event(rb_event_flag_t event_id, const rb_internal_thread_e
   }
 }
 
-static VALUE release_gvl_profiler(RB_UNUSED_VAR(VALUE _)) {
+static void write_stacks(VALUE filename_prefix, VALUE result) {
+  VALUE time_filename = rb_str_concat(rb_str_dup(filename_prefix), rb_str_new_cstr("_time.folded"));
+  VALUE counts_filename = rb_str_concat(rb_str_dup(filename_prefix), rb_str_new_cstr("_counts.folded"));
+
+  FILE *time_file = fopen(StringValueCStr(time_filename), "w");
+  FILE *counts_file = fopen(StringValueCStr(counts_filename), "w");
+
+  if (!time_file || !counts_file) {
+    if (time_file) fclose(time_file);
+    if (counts_file) fclose(counts_file);
+    rb_raise(rb_eIOError, "Failed to open output files");
+  }
+
+  VALUE keys = rb_funcall(result, rb_intern("keys"), 0);
+  long key_count = RARRAY_LEN(keys);
+
+  for (long i = 0; i < key_count; i++) {
+    VALUE frames = rb_ary_entry(keys, i);
+    VALUE stats = rb_hash_aref(result, frames);
+
+    long frame_count = RARRAY_LEN(frames) / 3;
+    for (long j = frame_count - 1; j >= 0; j--) {
+      if (j < frame_count - 1) {
+        fprintf(time_file, ";");
+        fprintf(counts_file, ";");
+      }
+
+      VALUE path = rb_ary_entry(frames, j * 3);
+      VALUE name = rb_ary_entry(frames, j * 3 + 1);
+      VALUE line = rb_ary_entry(frames, j * 3 + 2);
+
+      const char *path_str = path == Qnil ? "(unknown)" : StringValueCStr(path);
+      const char *name_str = name == Qnil ? "(unknown)" : StringValueCStr(name);
+      fprintf(time_file, "%s:%s:%ld", path_str, name_str, NUM2LONG(line));
+      fprintf(counts_file, "%s:%s:%ld", path_str, name_str, NUM2LONG(line));
+    }
+
+    fprintf(time_file, " %llu\n", NUM2ULL(rb_ary_entry(stats, 0)));
+    fprintf(counts_file, " %llu\n", NUM2ULL(rb_ary_entry(stats, 1)));
+  }
+
+  fclose(time_file);
+  fclose(counts_file);
+}
+
+static VALUE release_gvl_profiler(int argc, VALUE *argv, RB_UNUSED_VAR(VALUE _)) {
+  VALUE options;
+  rb_scan_args(argc, argv, "0:", &options);
+  if (options == Qnil) options = rb_hash_new();
+  VALUE filename_prefix = rb_hash_fetch(options, ID2SYM(rb_intern("filename_prefix")));
+
   VALUE result = rb_hash_new();
   rb_internal_thread_event_hook_t *hook = rb_internal_thread_add_event_hook(
     on_thread_event,
@@ -58,10 +107,12 @@ static VALUE release_gvl_profiler(RB_UNUSED_VAR(VALUE _)) {
   );
   rb_yield(Qnil);
   rb_internal_thread_remove_event_hook(hook);
+
+  write_stacks(filename_prefix, result);
   return result;
 }
 
 void init_release_gvl_profiler(VALUE lowlevel_toolkit_module) {
   release_gvl_at_key = rb_internal_thread_specific_key_create();
-  rb_define_singleton_method(lowlevel_toolkit_module, "release_gvl_profiler", release_gvl_profiler, 0);
+  rb_define_singleton_method(lowlevel_toolkit_module, "release_gvl_profiler", release_gvl_profiler, -1);
 }
