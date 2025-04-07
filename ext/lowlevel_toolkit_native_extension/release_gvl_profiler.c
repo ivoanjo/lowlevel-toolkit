@@ -79,7 +79,7 @@ static void write_stacks(VALUE filename_prefix, VALUE result) {
       VALUE name = rb_ary_entry(frames, j * 3 + 1);
       VALUE line = rb_ary_entry(frames, j * 3 + 2);
 
-      const char *path_str = path == Qnil ? "(unknown)" : StringValueCStr(path);
+      const char *path_str = path == Qnil ? "(native)" : StringValueCStr(path);
       const char *name_str = name == Qnil ? "(unknown)" : StringValueCStr(name);
       fprintf(time_file, "%s:%s:%ld", path_str, name_str, NUM2LONG(line));
       fprintf(counts_file, "%s:%s:%ld", path_str, name_str, NUM2LONG(line));
