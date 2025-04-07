@@ -24,6 +24,7 @@ static void on_thread_event(rb_event_flag_t event_id, const rb_internal_thread_e
     if (release_gvl_at == 0) return;
     rb_internal_thread_specific_set(thread, release_gvl_at_key, 0);
 
+    // If we wanted to delay processing the backtrace, we could switch to rb_profile_frames() here
     VALUE frames = rb_make_backtrace();
     VALUE result = (VALUE) data;
 
