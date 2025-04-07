@@ -2,8 +2,6 @@
 #include <ruby/debug.h>
 #include <ruby/thread.h>
 
-VALUE rb_ident_hash_new(void);
-
 static uint64_t get_monotonic_time_ns(void) {
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
