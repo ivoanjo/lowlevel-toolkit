@@ -24,17 +24,8 @@ static void on_thread_event(rb_event_flag_t event_id, const rb_internal_thread_e
     if (release_gvl_at == 0) return;
     rb_internal_thread_specific_set(thread, release_gvl_at_key, 0);
 
+    VALUE frames = rb_make_backtrace();
     VALUE result = (VALUE) data;
-    int lines[MAX_STACK_DEPTH];
-    VALUE locations[MAX_STACK_DEPTH];
-    int frame_count = rb_profile_frames(0, MAX_STACK_DEPTH, locations, lines);
-    VALUE frames = rb_ary_new();
-    for (int i = 0; i < frame_count; i++) {
-      rb_ary_push(frames, rb_profile_frame_path(locations[i]));
-      VALUE name = rb_profile_frame_base_label(locations[i]);
-      rb_ary_push(frames, name != Qnil ? name : rb_profile_frame_method_name(locations[i]));
-      rb_ary_push(frames, INT2NUM(lines[i]));
-    }
 
     VALUE stats = rb_hash_aref(result, frames);
     if (stats == Qnil) {
@@ -52,6 +43,9 @@ static void write_stacks(VALUE filename_prefix, VALUE result) {
   VALUE time_filename = rb_str_concat(rb_str_dup(filename_prefix), rb_str_new_cstr("_time.folded"));
   VALUE counts_filename = rb_str_concat(rb_str_dup(filename_prefix), rb_str_new_cstr("_counts.folded"));
 
+  VALUE clean_prefix = rb_hash_aref(rb_const_get(rb_const_get(rb_cObject, rb_intern("RbConfig")), rb_intern("CONFIG")), rb_str_new_cstr("rubylibdir"));
+  VALUE prefix_replacement = rb_str_new_cstr("ruby");
+
   FILE *time_file = fopen(StringValueCStr(time_filename), "w");
   FILE *counts_file = fopen(StringValueCStr(counts_filename), "w");
 
@@ -63,26 +57,21 @@ static void write_stacks(VALUE filename_prefix, VALUE result) {
 
   VALUE keys = rb_funcall(result, rb_intern("keys"), 0);
   long key_count = RARRAY_LEN(keys);
-
   for (long i = 0; i < key_count; i++) {
     VALUE frames = rb_ary_entry(keys, i);
     VALUE stats = rb_hash_aref(result, frames);
 
-    long frame_count = RARRAY_LEN(frames) / 3;
+    long frame_count = RARRAY_LEN(frames);
     for (long j = frame_count - 1; j >= 0; j--) {
       if (j < frame_count - 1) {
         fprintf(time_file, ";");
         fprintf(counts_file, ";");
       }
 
-      VALUE path = rb_ary_entry(frames, j * 3);
-      VALUE name = rb_ary_entry(frames, j * 3 + 1);
-      VALUE line = rb_ary_entry(frames, j * 3 + 2);
-
-      const char *path_str = path == Qnil ? "(native)" : StringValueCStr(path);
-      const char *name_str = name == Qnil ? "(unknown)" : StringValueCStr(name);
-      fprintf(time_file, "%s:%s:%ld", path_str, name_str, NUM2LONG(line));
-      fprintf(counts_file, "%s:%s:%ld", path_str, name_str, NUM2LONG(line));
+      VALUE frame = rb_ary_entry(frames, j);
+      if (clean_prefix != Qnil) rb_funcall(frame, rb_intern("sub!"), 2, clean_prefix, prefix_replacement); // Make files in ruby stdlib a bit neater
+      fprintf(time_file, "%s", StringValueCStr(frame));
+      fprintf(counts_file, "%s", StringValueCStr(frame));
     }
 
     fprintf(time_file, " %llu\n", NUM2ULL(rb_ary_entry(stats, 0)));
