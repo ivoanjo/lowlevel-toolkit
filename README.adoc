@@ -1,0 +1,86 @@
+= `lowlevel-toolkit`
+:toc:
+:toc-placement: macro
+:toclevels: 4
+:toc-title:
+
+A Ruby gem that provides access to low-level observability APIs for Ruby applications, allowing you to track and analyze various aspects of your Ruby program's behavior.
+
+More than the individual APIs provided, the objective of this gem is to be a repository of examples on **how to use these APIs for doing analysis**. It's expected to be a starting point when building tools.
+
+== Quickest start
+
+Here's a simple example of tracking GVL (Global VM Lock) usage in your application:
+
+[source,ruby]
+----
+require 'lowlevel-toolkit'
+
+def counter_loop(counter = 0) = (counter += 1 while counter < 150_000_000)
+
+pp(LowlevelToolkit.track_wants_gvl do
+  t1 = Thread.new { counter_loop }.tap { |it| it.name = 't1' }
+  t2 = Thread.new { counter_loop }.tap { |it| it.name = 't2' }
+
+  t1.join; t2.join
+end.map { |thread, wants_gvl_ns| [thread, wants_gvl_ns / 1_000_000_000.0] })
+----
+
+== Installation
+
+Install the gem and add to the application's `Gemfile` or `gems.rb` file by executing:
+
+[source,bash]
+----
+$ bundle add lowlevel-toolkit
+----
+
+If bundler is not being used to manage dependencies, install the gem by executing:
+
+[source,bash]
+----
+$ gem install lowlevel-toolkit
+----
+
+== Usage
+
+Use `require "lowlevel-toolkit"` to load the gem.
+
+The gem provides several low-level observability features:
+
+* `track_wants_gvl`: Track when threads want to acquire the Global VM Lock
+* `track_objects_created`: Monitor object creation in your application
+* `last_allocation_at`: Get information about the last object allocation
+* `on_gc_finish`: Set up callbacks for when garbage collection finishes
+* `who_called_me`: Track the call stack of method invocations
+* `release_gvl_profiler`: Profile GVL release patterns
+
+== Examples
+
+The gem comes with several examples in the `examples/` directory:
+
+* `track_wants_gvl.rb`: Shows how to track GVL usage across threads
+* `track_objects_created.rb`: Demonstrates object creation tracking
+* `last_allocation_at.rb`: Shows how to get information about the last allocation
+* `on_gc_finish.rb`: Example of setting up GC finish callbacks
+* `who_called_me.rb`: Demonstrates call stack tracking
+* `print_gc_timing.rb`: Shows GC timing information
+* `release_gvl_profiler.rb`: Example of GVL release profiling
+
+== Requirements
+
+This gem requires Ruby 3.3.0 or above. Patches welcome to extend support for older Rubies :)
+
+== Development
+
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to https://rubygems.org[rubygems.org]. To run specs, run `bundle exec rake spec`.
+
+To run all actions (build the extension, check linting, and run specs), run `bundle exec rake`.
+
+== Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/ivoanjo/lowlevel-toolkit. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the https://github.com/ivoanjo/lowlevel-toolkit/blob/master/CODE_OF_CONDUCT.adoc[code of conduct].
+
+== Code of Conduct
+
+Everyone interacting in the lowlevel-toolkit project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the https://github.com/ivoanjo/lowlevel-toolkit/blob/master/CODE_OF_CONDUCT.adoc[code of conduct].
