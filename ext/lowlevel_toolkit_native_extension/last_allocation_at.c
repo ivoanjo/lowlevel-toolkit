@@ -29,7 +29,7 @@ static VALUE last_allocation_at(RB_UNUSED_VAR(VALUE _)) {
   for (int i = 0; i < RARRAY_LEN(raw_stack); i++) {
     VALUE entry = rb_ary_entry(raw_stack, i);
     VALUE file = rb_profile_frame_path(entry);
-    if (file != Qnil) rb_ary_push(result, rb_ary_new_from_args(2, file, rb_profile_frame_base_label(entry)));
+    if (file != Qnil) rb_ary_push(result, rb_ary_new_from_args(2, file, rb_profile_frame_label(entry)));
   }
   stack = raw_stack; // Resume recording again
   return result;
