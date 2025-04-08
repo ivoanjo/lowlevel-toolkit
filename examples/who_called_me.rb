@@ -1,9 +1,7 @@
 require "lowlevel-toolkit"
 
 class Hello
-  def say_hello(to, secret)
-    to.hello!
-  end
+  def say_hello(to, secret) = to.hello!
 end
 
 class Spy
