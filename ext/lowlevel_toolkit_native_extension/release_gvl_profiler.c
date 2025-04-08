@@ -26,17 +26,16 @@ static void on_thread_event(rb_event_flag_t event_id, const rb_internal_thread_e
 
     // If we wanted to delay processing the backtrace, we could switch to rb_profile_frames() here
     VALUE frames = rb_make_backtrace();
-    VALUE result = (VALUE) data;
 
-    VALUE stats = rb_hash_aref(result, frames);
+    VALUE stats = rb_hash_aref((VALUE) data, frames);
     if (stats == Qnil) {
       stats = rb_ary_new_from_args(2, INT2FIX(0), INT2FIX(0));
-      rb_hash_aset(result, frames, stats);
+      rb_hash_aset((VALUE) data, frames, stats);
     }
 
     uint64_t time_spent = get_monotonic_time_ns() - release_gvl_at;
-    rb_ary_store(stats, 0, ULL2NUM(NUM2ULL(rb_ary_entry(stats, 0)) + time_spent));
-    rb_ary_store(stats, 1, ULL2NUM(NUM2ULL(rb_ary_entry(stats, 1)) + 1));
+    rb_ary_store(stats, 0, ULL2NUM(NUM2ULL(rb_ary_entry(stats, 0)) + time_spent)); // Time
+    rb_ary_store(stats, 1, ULL2NUM(NUM2ULL(rb_ary_entry(stats, 1)) + 1));          // Counts
   }
 }
 
