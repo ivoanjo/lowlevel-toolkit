@@ -9,7 +9,7 @@ static VALUE stack = Qnil;
 static void on_newobj_event(VALUE tpval, RB_UNUSED_VAR(void *_)) {
   if (stack == Qnil ||
     rb_objspace_internal_object_p(rb_tracearg_object(rb_tracearg_from_tracepoint(tpval)))) return;
-  VALUE buffer[MAX_DEPTH];
+  VALUE buffer[MAX_DEPTH]; // Temporary buffer for calling API
   int depth = rb_profile_frames(0, MAX_DEPTH, buffer, NULL);
   rb_ary_clear(stack);
   for (int i = 0; i < depth; i++) rb_ary_push(stack, buffer[i]);
