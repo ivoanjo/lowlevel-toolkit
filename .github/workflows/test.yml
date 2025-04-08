@@ -2,8 +2,8 @@ name: test
 
 on: [push, pull_request]
 
-env:
-  # ENABLE_WERROR: true # TODO
+#env:
+#  ENABLE_WERROR: true # TODO
 
 jobs:
   test:
