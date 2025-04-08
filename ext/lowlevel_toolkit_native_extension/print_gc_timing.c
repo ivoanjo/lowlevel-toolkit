@@ -7,6 +7,8 @@ static uint64_t get_monotonic_time_ns(void) {
   return (uint64_t) ts.tv_sec * 1000000000ULL + (uint64_t) ts.tv_nsec;
 }
 
+static inline double ns_to_ms(uint64_t ns) { return ns / 1000000.0; }
+
 static void on_gc_event(VALUE tpval, RB_UNUSED_VAR(void *_)) {
   static uint64_t gc_start_time = 0;
   rb_event_flag_t event = rb_tracearg_event_flag(rb_tracearg_from_tracepoint(tpval));
@@ -14,7 +16,7 @@ static void on_gc_event(VALUE tpval, RB_UNUSED_VAR(void *_)) {
   if (event == RUBY_INTERNAL_EVENT_GC_ENTER) {
     gc_start_time = get_monotonic_time_ns();
   } else if (event == RUBY_INTERNAL_EVENT_GC_EXIT) {
-    fprintf(stdout, "GC worked for %.2f ms\n", ((get_monotonic_time_ns() - gc_start_time) / 1000000.0));
+    fprintf(stdout, "GC worked for %.2f ms\n", ns_to_ms(get_monotonic_time_ns() - gc_start_time));
   }
 }
 
