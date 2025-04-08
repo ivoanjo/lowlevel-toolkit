@@ -1,4 +1,4 @@
-require 'lowlevel-toolkit'
+require "lowlevel-toolkit"
 
 def hello
   Object.new

@@ -1,4 +1,4 @@
-require 'lowlevel-toolkit'
+require "lowlevel-toolkit"
 
 pp(LowlevelToolkit.track_objects_created do
   Object.new

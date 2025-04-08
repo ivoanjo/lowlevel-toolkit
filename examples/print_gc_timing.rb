@@ -1,4 +1,4 @@
-require 'lowlevel-toolkit'
+require "lowlevel-toolkit"
 
 LowlevelToolkit.print_gc_timing do
   puts "Minor GC:"

@@ -1,4 +1,4 @@
-require 'lowlevel-toolkit'
+require "lowlevel-toolkit"
 
 at_finish = -> do
   kind = GC.latest_gc_info[:major_by]

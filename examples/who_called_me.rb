@@ -1,4 +1,4 @@
-require 'lowlevel-toolkit'
+require "lowlevel-toolkit"
 
 class Hello
   def say_hello(to, secret)
@@ -13,4 +13,4 @@ class Spy
   end
 end
 
-Hello.new.say_hello(Spy.new, 'trustno1')
+Hello.new.say_hello(Spy.new, "trustno1")

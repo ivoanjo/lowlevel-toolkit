@@ -1,4 +1,4 @@
-require 'lowlevel-toolkit'
+require "lowlevel-toolkit"
 require "net/http"
 
 def counter_loop(counter = 0) = (counter += 1 while counter < 150_000_000)
