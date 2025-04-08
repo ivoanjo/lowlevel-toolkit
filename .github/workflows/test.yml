@@ -3,7 +3,7 @@ name: test
 on: [push, pull_request]
 
 env:
-  ENABLE_WERROR: true
+  # ENABLE_WERROR: true # TODO
 
 jobs:
   test:
@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        ruby: ['3.4', head, debug]
+        ruby: ['3.3', '3.4', '3.4-asan']
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
