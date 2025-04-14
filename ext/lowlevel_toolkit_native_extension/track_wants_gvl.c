@@ -14,6 +14,8 @@ static int total_wants_key;
 static void on_thread_event(rb_event_flag_t event_id, const rb_internal_thread_event_data_t *event_data, void *data) {
   VALUE thread = event_data->thread;
   if (event_id == RUBY_INTERNAL_THREAD_EVENT_STARTED) {
+    // BUG: This is not thread safe... but works sometimes
+    // TODO: Replace with safe data structure
     rb_ary_push((VALUE) data, thread);
   } else if (event_id == RUBY_INTERNAL_THREAD_EVENT_READY) {
     rb_internal_thread_specific_set(thread, wants_gvl_at_key, (void *) get_monotonic_time_ns());
