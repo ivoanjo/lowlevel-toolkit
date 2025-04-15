@@ -26,5 +26,5 @@
 # frozen_string_literal: true
 
 module LowlevelToolkit
-  VERSION = "0.2.0.dev"
+  VERSION = "0.2.0"
 end
