@@ -33,6 +33,7 @@ void init_who_called_me(VALUE lowlevel_toolkit_module);
 void init_last_allocation_at(VALUE lowlevel_toolkit_module);
 void init_track_wants_gvl(VALUE lowlevel_toolkit_module);
 void init_release_gvl_profiler(VALUE lowlevel_toolkit_module);
+void init_newobj_overhead(VALUE lowlevel_toolkit_module);
 
 void Init_lowlevel_toolkit_native_extension(void) {
   VALUE lowlevel_toolkit_module = rb_define_module("LowlevelToolkit");
@@ -44,4 +45,5 @@ void Init_lowlevel_toolkit_native_extension(void) {
   init_who_called_me(lowlevel_toolkit_module);
   init_track_wants_gvl(lowlevel_toolkit_module);
   init_release_gvl_profiler(lowlevel_toolkit_module);
+  init_newobj_overhead(lowlevel_toolkit_module);
 }
